@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // General Tensor structure
 typedef float Dtype;
@@ -23,6 +24,10 @@ Tensor *tensor_copy(const Tensor *t);
 void tensor_populate_array(Tensor *t, Dtype array[]);
 Tensor *tensor_reshape(const Tensor *t, size_t ndim, size_t shape[]);
 Tensor *tensor_transpose(const Tensor *tensor);
+Tensor *tensor_concatenate(const Tensor *t1, const Tensor *t2, size_t axis);
+Tensor *tensor_rand(size_t ndim, ...);
+Tensor *tensor_rand_from_shape(size_t ndim, size_t shape[]);
+bool tensor_equal(const Tensor *t1, const Tensor *t2);
 
 void tensor_free(Tensor *t);
 void tensor_print(const Tensor *t);
