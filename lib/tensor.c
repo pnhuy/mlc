@@ -1,4 +1,5 @@
 #include "tensor.h"
+#include "utils.h"
 #include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -48,7 +49,7 @@ Tensor *tensor_copy(const Tensor *t) {
     copy->size = t->size;
 
     for (size_t i = 0; i < t->ndim; i++) {
-        copy->shape[i] = t->shape[i];
+	copy->shape[i] = t->shape[i];
     }
 
     copy->data = (Dtype *)malloc(t->size * sizeof(Dtype));
@@ -195,8 +196,144 @@ void tensor_print(const Tensor *t) {
         printf("Dimension %zu: %zu\n", i, t->shape[i]);
     }
     printf("Data:\n");
-    for (size_t i = 0; i < (t->size > 10 ? 10 : t->size); i++) {
+    for (size_t i = 0; i < (t->size); i++) {
         printf("%f ", t->data[i]);
     }
     printf("\n===\n");
+}
+
+Tensor *tensor_concatenate(const Tensor *t1, const Tensor *t2, size_t axis) {
+    // Validate inputs
+    if (!t1 || !t2 || axis >= t1->ndim || t1->ndim != t2->ndim) {
+        return NULL;
+    }
+
+    // Check if shapes match except for the concatenation axis
+    for (size_t i = 0; i < t1->ndim; i++) {
+        if (i != axis && t1->shape[i] != t2->shape[i]) {
+            return NULL;
+        }
+    }
+
+    // Create new shape array
+    size_t *new_shape = malloc(t1->ndim * sizeof(size_t));
+    if (!new_shape)
+        return NULL;
+
+    // Calculate new shape
+    for (size_t i = 0; i < t1->ndim; i++) {
+        new_shape[i] = (i == axis) ? t1->shape[i] + t2->shape[i] : t1->shape[i];
+    }
+
+    // Create new tensor
+    Tensor *result = tensor_create_from_shape(t1->ndim, new_shape);
+    free(new_shape);
+    if (!result)
+        return NULL;
+
+    // Calculate strides for copying
+    size_t *strides = malloc(t1->ndim * sizeof(size_t));
+    if (!strides) {
+        tensor_free(result);
+        return NULL;
+    }
+
+    // Calculate strides (number of elements to jump for each dimension)
+    strides[t1->ndim - 1] = 1;
+    for (int i = t1->ndim - 2; i >= 0; i--) {
+        strides[i] = strides[i + 1] * result->shape[i + 1];
+    }
+
+    // Copy data from t1 and t2 to result
+    size_t *indices = calloc(t1->ndim, sizeof(size_t));
+    if (!indices) {
+        free(strides);
+        tensor_free(result);
+        return NULL;
+    }
+
+    // Copy data from first tensor
+    for (size_t i = 0; i < t1->size; i++) {
+        // Calculate current indices
+        size_t temp = i;
+        for (int j = t1->ndim - 1; j >= 0; j--) {
+            indices[j] = temp % t1->shape[j];
+            temp /= t1->shape[j];
+        }
+
+        // Calculate destination index in result
+        size_t dest_idx = tensor_get_linear_index(result->shape, indices, t1->ndim);
+        result->data[dest_idx] = t1->data[i];
+    }
+
+    // Copy data from second tensor
+    for (size_t i = 0; i < t2->size; i++) {
+        // Calculate current indices
+        size_t temp = i;
+        for (int j = t2->ndim - 1; j >= 0; j--) {
+            indices[j] = temp % t2->shape[j];
+            temp /= t2->shape[j];
+        }
+
+        // Adjust index for concatenation axis
+        indices[axis] += t1->shape[axis];
+
+        // Calculate destination index in result
+        size_t dest_idx = tensor_get_linear_index(result->shape, indices, t2->ndim);
+        result->data[dest_idx] = t2->data[i];
+    }
+
+    free(indices);
+    free(strides);
+    return result;
+}
+
+float rand_float() {
+    return (float)rand() / (float)RAND_MAX;
+}
+
+// Function to create a tensor with random values from a given shape
+Tensor *tensor_rand_from_shape(size_t ndim, size_t shape[]) {
+    Tensor *t = tensor_create_from_shape(ndim, shape);
+
+    for (size_t i = 0; i < t->size; i++) {
+        t->data[i] = (Dtype)rand_float();
+    }
+
+    return t;
+}
+
+// Function to create a tensor with random values from a given shape
+Tensor *tensor_rand(size_t ndim, ...) {
+    size_t *shape = malloc(ndim * sizeof(size_t));
+    va_list args;
+    va_start(args, ndim);
+    for (size_t i = 0; i < ndim; i++) {
+        shape[i] = va_arg(args, size_t);
+    }
+    va_end(args);
+
+    Tensor *t = tensor_rand_from_shape(ndim, shape);
+    free(shape);
+    return t;
+}
+
+bool tensor_equal(const Tensor *t1, const Tensor *t2) {
+    if (t1->ndim != t2->ndim) {
+        return false;
+    }
+
+    for (size_t i = 0; i < t1->ndim; i++) {
+        if (t1->shape[i] != t2->shape[i]) {
+            return false;
+        }
+    }
+
+    for (size_t i = 0; i < t1->size; i++) {
+        if (t1->data[i] != t2->data[i]) {
+            return false;
+        }
+    }
+
+    return true;
 }
