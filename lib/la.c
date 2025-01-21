@@ -203,7 +203,7 @@ Tensor *tensor_cross(const Tensor *t1, const Tensor *t2) {
     return result;
 }
 
-Tensor *tensor_invert(const Tensor *t) {
+Tensor *tensor_inverse(const Tensor *t) {
     // Check for valid input (must be 2D square matrix)
     if (!t || t->ndim != 2 || t->shape[0] != t->shape[1]) {
         return NULL;
@@ -288,7 +288,7 @@ bool tensor_is_invertible(const Tensor *t) {
     }
 
     // For larger matrices, attempt inversion
-    Tensor *inv = tensor_invert(t);
+    Tensor *inv = tensor_inverse(t);
     if (!inv)
         return false;
 
