@@ -18,7 +18,7 @@ Tensor *tensor_divide_scalar(const Tensor *a, float scalar);
 Tensor *tensor_matmul(const Tensor *a, const Tensor *b); // Matrix multiplication
 float tensor_dot(const Tensor *a, const Tensor *b);      // Dot product
 Tensor *tensor_cross(const Tensor *a, const Tensor *b);  // Cross product (3D vectors only)
-Tensor *tensor_invert(const Tensor *t);
+Tensor *tensor_inverse(const Tensor *t);
 
 // Reduction Operations
 Dtype tensor_sum(const Tensor *tensor);
