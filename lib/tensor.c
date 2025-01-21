@@ -100,7 +100,7 @@ Tensor *tensor_transpose(const Tensor *tensor) {
     }
 
     // Create new dimensions array with reversed order
-    size_t *new_dims = malloc(tensor->ndim * sizeof(size_t));
+    size_t *new_dims = (size_t *)malloc(tensor->ndim * sizeof(size_t));
     if (!new_dims)
         return NULL;
 
@@ -117,8 +117,8 @@ Tensor *tensor_transpose(const Tensor *tensor) {
         return NULL;
 
     // Calculate strides for both tensors
-    size_t *original_strides = malloc(tensor->ndim * sizeof(size_t));
-    size_t *new_strides = malloc(tensor->ndim * sizeof(size_t));
+    size_t *original_strides = (size_t *)malloc(tensor->ndim * sizeof(size_t));
+    size_t *new_strides = (size_t *)malloc(tensor->ndim * sizeof(size_t));
 
     if (!original_strides || !new_strides) {
         free(original_strides);
@@ -144,7 +144,7 @@ Tensor *tensor_transpose(const Tensor *tensor) {
     for (size_t count = 0; count < total_elements; count++) {
         // Convert linear index to multi-dimensional indices for original tensor
         size_t remaining = count;
-        size_t *indices = malloc(tensor->ndim * sizeof(size_t));
+        size_t *indices = (size_t *)malloc(tensor->ndim * sizeof(size_t));
 
         if (!indices) {
             free(original_strides);
@@ -305,7 +305,7 @@ Tensor *tensor_rand_from_shape(size_t ndim, size_t shape[]) {
 
 // Function to create a tensor with random values from a given shape
 Tensor *tensor_rand(size_t ndim, ...) {
-    size_t *shape = malloc(ndim * sizeof(size_t));
+    size_t *shape = (size_t *)malloc(ndim * sizeof(size_t));
     va_list args;
     va_start(args, ndim);
     for (size_t i = 0; i < ndim; i++) {
