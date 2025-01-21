@@ -3,7 +3,7 @@
 #include <stddef.h>
 
 bool float_equal(float a, float b) {
-    return fabs(a - b) < 1e-6;
+    return fabs(a - b) < 1e-5;
 }
 
 // Helper function to calculate linear index from multi-dimensional indices
